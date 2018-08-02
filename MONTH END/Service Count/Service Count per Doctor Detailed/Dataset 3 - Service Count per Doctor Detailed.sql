@@ -1,0 +1,1 @@
+SELECT DISTINCT department FROM ref_costcentre_daily_revenue_detailed WHERE [group] =  'Clinical Operations' ORDER BY department

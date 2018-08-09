@@ -2,16 +2,13 @@ DECLARE @iMonth int
 DECLARE @iMonth2 int
 DECLARE @iYear int
 
-SET @iMonth =  10 --3427 JAN 2016
-SET @iMonth2 = 10
-SET @iYear = 2017
+SET @iMonth = @MonthFrom
+SET @iMonth2 = @MonthTo
+SET @iYear = @Year
 
-SELECT --temp.patient_visit_id
+SELECT temp.patient_visit_id,
 	   temp.hn as HN,
 	   temp.patient_name as [Patient Name],
-	 --  	temp.date_of_birth as [Date of Birth], --added line
-		--temp.age as [Age],	--added line
-		--temp.gender as [Gender],	 --added line
 	   temp.invoice_no as [Invoice No.],
 	   temp.invoice_date as [Invoice Date],
 	   temp.visit_type as [Visit Type],
@@ -57,7 +54,6 @@ SELECT --temp.patient_visit_id
 		temp.physicians_payable as [Physician's Fee],
 		temp.readers_fee as [Reader's Fee],
 		temp.category
-		--,temp.payment_status --added line
 FROM
 (
 	SELECT avs.invoice_no,
@@ -106,27 +102,14 @@ FROM
 		   avs.physicians_payable,
 		   avs.readers_fee,
 		  isnull((SELECT description
-					from OrionSnapshotDaily.dbo.patient_visit_diagnosis_view a INNER JOIN OrionSnapshotDaily.dbo.patient_visit_nl_view b on a.patient_visit_id = b.patient_visit_id
-														inner JOIN OrionSnapshotDaily.dbo.coding_system_element_description_nl_view c on a.coding_system_rcd = c.coding_system_rcd
+					from AmalgaPROD.dbo.patient_visit_diagnosis_view a INNER JOIN AmalgaPROD.dbo.patient_visit_nl_view b on a.patient_visit_id = b.patient_visit_id
+														inner JOIN AmalgaPROD.dbo.coding_system_element_description_nl_view c on a.coding_system_rcd = c.coding_system_rcd
 					where c.code = a.code
 						and a.patient_visit_id = avs.patient_visit_id
 						and a.current_visit_diagnosis_flag = 1),'') as diagnosis,
 		  'From ACI' as category,
 		  avs.patient_visit_id
-
-		  --,pfn.date_of_birth,	--added line
-		  --DATEDIFF(dd,pfn.date_of_birth,GETDATE()) / 365 as age,	--added line
-		  --sr.name_l as gender,	--added line
-		  --spsr.name_l as payment_status		--added line
-
-	from rpt_aci_visit_summary avs
-
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.patient_visit_nl_view pv ON avs.patient_visit_id = pv.patient_visit_id  --added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.person_formatted_name_iview pfn ON pv.patient_id = pfn.person_id   --added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.sex_ref sr ON pfn.sex_rcd = sr.sex_rcd	--added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.ar_invoice ar ON avs.invoice_id = ar.ar_invoice_id	--added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.swe_payment_status_ref spsr ON ar.swe_payment_status_rcd = spsr.swe_payment_status_rcd	--added line
-
+	from HISReport.dbo.rpt_aci_visit_summary avs
 	where MONTH(avs.invoice_date) >= @iMonth and MONTH(avs.invoice_date) <= @iMonth2
 		and YEAR(avs.invoice_date) = @iYear
 	UNION ALL
@@ -176,34 +159,19 @@ FROM
 		   avs.physicians_payable,
 		   avs.readers_fee,
 		  isnull((SELECT description
-					from OrionSnapshotDaily.dbo.patient_visit_diagnosis_view a INNER JOIN OrionSnapshotDaily.dbo.patient_visit_nl_view b on a.patient_visit_id = b.patient_visit_id
-														inner JOIN OrionSnapshotDaily.dbo.coding_system_element_description_nl_view c on a.coding_system_rcd = c.coding_system_rcd
+					from AmalgaPROD.dbo.patient_visit_diagnosis_view a INNER JOIN AmalgaPROD.dbo.patient_visit_nl_view b on a.patient_visit_id = b.patient_visit_id
+														inner JOIN AmalgaPROD.dbo.coding_system_element_description_nl_view c on a.coding_system_rcd = c.coding_system_rcd
 					where c.code = a.code
 						and a.patient_visit_id = avs.patient_visit_id
 						and a.current_visit_diagnosis_flag = 1),'') as diagnosis,
 		  'After ACI' as category,
 		  avs.patient_visit_id
-
-		  -- ,pfn.date_of_birth,	--added line
-		  --DATEDIFF(dd,pfn.date_of_birth,GETDATE()) / 365 as age,	--added line
-		  --sr.name_l as gender,	--added line
-		  --spsr.name_l as payment_status		--added line
-
-	from rpt_after_aci_visit_summary avs
-
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.patient_visit_nl_view pv ON avs.patient_visit_id = pv.patient_visit_id  --added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.person_formatted_name_iview pfn ON pv.patient_id = pfn.person_id   --added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.sex_ref sr ON pfn.sex_rcd = sr.sex_rcd	--added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.ar_invoice ar ON avs.invoice_id = ar.ar_invoice_id	--added line
-				--LEFT OUTER JOIN OrionSnapshotDaily.dbo.swe_payment_status_ref spsr ON ar.swe_payment_status_rcd = spsr.swe_payment_status_rcd	--added line
-
+	from HISReport.dbo.rpt_after_aci_visit_summary avs
 	where MONTH(avs.invoice_date) >= @iMonth and MONTH(avs.invoice_date) <= @iMonth2
 		and YEAR(avs.invoice_date) = @iYear
 		 and hn in (select hn
 				   from HISReport.dbo.rpt_aci_visit_summary
-				   where rpt_aci_visit_summary.invoice_date <= avs.invoice_date)
+				   where HISReport.dbo.rpt_aci_visit_summary.invoice_date <= avs.invoice_date)
 ) as temp
---where  temp.age <= 19 --added line
---			AND temp.visit_type = 'Inpatient Visit'	--added line
 order by temp.patient_name,
 	     temp.invoice_date

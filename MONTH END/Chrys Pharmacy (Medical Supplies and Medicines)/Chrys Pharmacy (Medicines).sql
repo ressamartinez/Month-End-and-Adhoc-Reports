@@ -12,6 +12,8 @@ SELECT hn,
 	   temp.gross_amount,
 	   temp.visit_type_rcd,
 	   temp.transaction_date_time,
+	   	CONVERT(VARCHAR(20), temp.transaction_date_time,101) AS [Invoice Date],
+		FORMAT(temp.transaction_date_time,'hh:mm tt') AS [Invoice Time],
 	   temp.visit_type,
 	   temp.item_code,
 	   temp.item_name,
@@ -77,3 +79,4 @@ from
 			and i.item_id = cid.item_id
 			and gac.gl_acct_code_code = '1160701'
 ) as temp
+order by temp.transaction_date_time

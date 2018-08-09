@@ -6,8 +6,8 @@ SELECT temp.item_code,
 	   temp.sub_item_type,
 	   temp.item_desc,
 	   temp.modified_on,
-	   CONVERT(VARCHAR(20), temp.modified_on,101) AS [Date Modified On],
-	   FORMAT(temp.modified_on,'hh:mm tt') AS [Time Modified On],
+	CONVERT(VARCHAR(20), temp.modified_on,101) as change_date,
+	   FORMAT(temp.modified_on,'hh:mm tt') as change_time,
 	   temp.modified_by,
 	   temp.column_name,
 	   temp.old_value,
@@ -108,6 +108,6 @@ from
 								'item_type_rcd',
 								'sub_item_type_rcd')
 ) as temp
-order by temp.item_type_rcd,
-	     temp.modified_on DESC,
-		 temp.item_code
+order by temp.modified_on DESC,
+		 temp.item_code,
+		temp.item_type_rcd

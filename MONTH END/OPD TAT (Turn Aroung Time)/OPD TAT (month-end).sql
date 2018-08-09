@@ -9,7 +9,7 @@ SELECT
 	CONVERT(VARCHAR(15), CAST(modified_date_time AS TIME), 100) AS modified_time,
 	DATEDIFF(MINUTE, created_date_time, modified_date_time) AS turn_around_time_in_minutes,
 	CAST(DATEDIFF(MINUTE, created_date_time, modified_date_time) / 60.00 AS NUMERIC(4, 2)) AS turn_around_time_in_hours
-FROM queue.entry_history
+FROM ITWORKSDEV01.ITWorksCare.queue.entry_history
 WHERE name IS NOT NULL
 AND (
 MONTH(created_date_time) = @Month

@@ -12,7 +12,9 @@ SELECT temp.hn,
 			when ISNULL(temp.deposit,0) > 1 THEN temp.deposit end as deposit,  
 	   temp.deposit as orig_deposit,   
 	   sum(temp.discount_amount) as discount,  
-	   temp.transaction_date_time
+	   temp.transaction_date_time,
+	   CONVERT(VARCHAR(20), temp.transaction_date_time,101) AS [Transaction Date],
+		FORMAT(temp.transaction_date_time,'hh:mm tt') AS [Transaction Time]
 from 
 ( 
     SELECT phu.visible_patient_id as hn, 
@@ -72,4 +74,4 @@ group by temp.hn,
          temp.coveredby_co_payor, 
          temp.vat, 
          temp.deposit
-order by temp.invoice_number
+order by temp.transaction_date_time --temp.invoice_number

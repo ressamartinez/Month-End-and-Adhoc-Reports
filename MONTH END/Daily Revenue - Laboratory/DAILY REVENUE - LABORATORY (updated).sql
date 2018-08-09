@@ -93,8 +93,8 @@ FROM (SELECT
 	FROM rpt_daily_revenue_detailed_temp DRD WITH (NOLOCK)) [rpt_daily_revenue_detailed_all]
 
 WHERE --transaction_date_time BETWEEN '04/01/2016 00:00:00.000' AND '04/30/2016 23:59:59.998'
-      MONTH(transaction_date_time) = 01 --@Month
-AND transaction_date_year_rcd = 2018 --@Year
+      MONTH(transaction_date_time) = @Month
+AND transaction_date_year_rcd = @Year
 AND service_provider IN
 ('Lab-Blood Bank',
 'Lab-Clinical',

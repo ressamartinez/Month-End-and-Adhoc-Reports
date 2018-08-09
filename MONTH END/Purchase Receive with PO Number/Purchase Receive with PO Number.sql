@@ -1,7 +1,9 @@
 --Purchase Receive (OrionSnapshot2minutes)
 
 SELECT temp.transaction_no as [Transaction No.]
-			,temp.received_on_date as [Received On Date]
+			,temp.received_on_date as [Received On DateTime]
+			,CONVERT(VARCHAR(20), temp.received_on_date,101) as [Received On Date]
+			,FORMAT(temp.received_on_date,'hh:mm tt') AS [Received On Time]
 			,temp.po_no as [PO Number]
 			,temp.po_date as [PO Date]
 			,temp.purchase_status as [Purchase Status]
@@ -98,6 +100,7 @@ FROM
 							--and YEAR(spr.received_on_date) = 2017
 							--((MONTH(spr.received_on_date) BETWEEN 07 AND 07) AND YEAR(spr.received_on_date) = 2017)
 							spr.received_on_date BETWEEN '01/01/2013 00:00:00.000' and '07/31/2018 23:59:59.998'
+							--spr.received_on_date BETWEEN @From and @To
 							and spo.swe_purchase_site_id = '31488C46-FDB0-11D9-A79B-001143B8816C' ---Central Purchasing
 							--and spr.transaction_text = 'RRC-2015-010052' 
 
@@ -109,6 +112,5 @@ where temp.purchase_status <> 'void'
 			--AND temp.vendor_invoice_no IS NULL
 
 ORDER by temp.received_on_date
-
 
 

@@ -2,7 +2,9 @@
 			tempb.patient_name as [Patient Name], 
 			tempb.visit_type as [Visit Type],
 			tempb.invoice_number as [Invoice Number], 
-			tempb.invoice_date as [Invoice Date],
+			tempb.invoice_date as [Invoice Date and Time],
+			CONVERT(VARCHAR(20), tempb.invoice_date,101) AS [Invoice Date],
+			FORMAT(tempb.invoice_date,'hh:mm tt') AS [Invoice Time],
 			tempb.invoice_amount as [Invoice Amount], 
 			tempb.gross_amount as [Gross Amount], 
 			case when tempb.visit_type_rcd = 'V34' THEN	tempb.vat
@@ -124,4 +126,4 @@
 			  temp.visit_type,
 			  temp.invoice_date
 	  ) as tempb     
-	  ORDER BY tempb.visit_type_rcd                
+	  ORDER BY [Invoice Date] --tempb.visit_type_rcd                

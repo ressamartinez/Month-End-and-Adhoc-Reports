@@ -18,8 +18,3 @@ SELECT employee_nr as [Employee No.],
 	   lu_updated_datetime as [Last Updated Date and Time]
 from df_browse_manual_entry
 order by [Last Updated Date and Time] 
-
-
-
-
-

@@ -1,8 +1,8 @@
 SELECT
 	*
 FROM dis.df_browse_validated
-WHERE month(charge_date) = 7
-and year(charge_date) = 2018
+WHERE month(charge_date) = @Month
+and year(charge_date) = @Year
 --charge_date BETWEEN '07-01-2018 00:00:00.000' and '07-31-2018 23:59:59.998'
 and costcentre_group_id = '8A6503A8-39EE-49B7-8455-8343F0A4F290'   --Heart Station
 and validated = 'yes'

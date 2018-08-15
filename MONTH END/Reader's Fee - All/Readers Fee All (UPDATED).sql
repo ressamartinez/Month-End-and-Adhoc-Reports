@@ -1,8 +1,8 @@
---last processed date (04/2018)
+--last processed date (07/2018)
 DECLARE @iMonth int
 DECLARE @iYear int
 
-SET @iMonth = 5
+SET @iMonth = 7
 SET @iYear = 2018
 
 SELECT DISTINCT charge_id, 

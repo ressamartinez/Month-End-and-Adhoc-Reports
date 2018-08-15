@@ -1,13 +1,13 @@
 --HISReport
 
 --INVOICES UNPAID AND PARTIALLY PAID --24122, 24084, 24086
- DECLARE @dFrom datetime
-DECLARE @dTo datetime
-DECLARE @AsOFDate2 datetime
+-- DECLARE @dFrom datetime
+--DECLARE @dTo datetime
+--DECLARE @AsOFDate2 datetime
 
-SET @dFrom = @From --'01/01/2006 00:00:00.000'		--Jan 2018 = 22667
-SET @dTo = @To --'07/31/2018 23:59:59.998'
-set @AsOFDate2 = @AsOf --'07/31/2018  23:59:59.998'	--27975
+--SET @dFrom = @From --'01/01/2006 00:00:00.000'		--Jan 2018 = 22667
+--SET @dTo = @To --'07/31/2018 23:59:59.998'
+--set @AsOFDate2 = @AsOf --'07/31/2018  23:59:59.998'	--27975
 
 
 SELECT distinct tempb.[Invoice No.],
@@ -180,7 +180,7 @@ from
 											  and _inv.invoice_id not in (SELECT c.ar_invoice_id
 																	from AmalgaPROD.dbo.swe_ar_instalment a INNER JOIN AmalgaPROD.dbo.remittance b on a.remittance_id  = b.remittance_id
 																													inner JOIN AmalgaPROD.dbo.ar_invoice c on a.ar_invoice_id = c.ar_invoice_id
-																	where  YEAR(b.transaction_date_time) <= @AsOfDate2
+																	where  YEAR(b.transaction_date_time) <= @AsOFDate2
 																		and b.transaction_status_rcd <> 'voi'))
 	) as temp
 	where (temp.paid_amt <> temp.ar_net_amt and temp.paid_amt !> temp.ar_net_amt)

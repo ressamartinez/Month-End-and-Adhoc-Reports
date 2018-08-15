@@ -5,9 +5,9 @@
 --DECLARE @dTo datetime
 --DECLARE @AsOFDate2 datetime
 
---SET @dFrom = @From --'01/01/2006 00:00:00.000'		--Jan 2018 = 22667
---SET @dTo = @To --'07/31/2018 23:59:59.998'
---set @AsOFDate2 = @AsOf --'07/31/2018  23:59:59.998'	--27975
+--SET @dFrom = /*@From*/ '01/01/2006 00:00:00.000'		--Jan 2018 = 22667
+--SET @dTo = /*@To*/ '07/31/2018 23:59:59.998'
+--set @AsOFDate2 = /*@AsOf*/ '07/31/2018  23:59:59.998'	--27975
 
 
 SELECT distinct tempb.[Invoice No.],
@@ -165,14 +165,14 @@ from
 													and b2.ar_invoice_id = a.ar_invoice_id
 											) as temp
 										) as temp),0) as paid_amt
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
+		from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
 								inner JOIN AmalgaPROD.dbo.swe_ar_instalment ar_instl_main on ar_main.ar_invoice_id = ar_instl_main.ar_invoice_id
 								INNER  JOIN AmalgaPROD.dbo.remittance r_main on ar_instl_main.remittance_id = r_main.remittance_id
 		where    CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 			and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)
 			and ar_main.transaction_status_rcd not in  ('unk','voi')
 			and inv.invoice_id not in (SELECT _inv.invoice_id
-										from rpt_invoice_pf _inv inner JOIN AmalgaPROD.dbo.ar_invoice _ar_main on _inv.invoice_id = _ar_main.ar_invoice_id
+										from HISReport.dbo.rpt_invoice_pf _inv inner JOIN AmalgaPROD.dbo.ar_invoice _ar_main on _inv.invoice_id = _ar_main.ar_invoice_id
 										where CAST(CONVERT(VARCHAR(10),_inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 											 and CAST(CONVERT(VARCHAR(10),_inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)	
 											 and _ar_main.net_amount > 0 
@@ -228,7 +228,7 @@ from
 			   inv.net_er_pf,
 			   inv.discount_er_pf,
 			   inv.package_discount
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
+		from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
 		where    CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 			and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)
 			and ar_main.transaction_status_rcd not in  ('unk','voi')
@@ -257,7 +257,7 @@ from
 			inv.package_discount as [Package Discount],
 			'No Payment' as [Payment Status],
 			inv.ar_net_amt as [Owing Amount]
-	from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
+	from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
 	where CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 		 and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)	
 		 and ar_main.net_amount > 0 
@@ -311,7 +311,7 @@ from
 			   inv.package_discount,
 			   inv.ar_net_amt as owing_amt
 
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
+		from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
 								inner JOIN (SELECT ar_invoice_id,
 																transaction_text as ar_invoice,
 																related_ar_invoice_id,

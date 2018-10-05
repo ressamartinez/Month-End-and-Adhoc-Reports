@@ -24,5 +24,8 @@ where month(rip.transaction_date_time) = 8
 	  --and rip.hn = '00546170'
 	  and ar.transaction_status_rcd not in ('unk','voi')
 	  and gac.gl_acct_code_code = '2152100'
+	  and ar.write_off_amount <> 0
+	  and r.user_transaction_type_id in ('30957FA3-735D-11DA-BB34-000E0C7F3ED2', '30957FA4-735D-11DA-BB34-000E0C7F3ED2')
+	  --and rip.invoice_no = 'PINV-2018-217311'
 	  
-order by rip.transaction_date_time asc		
+order by rip.transaction_date_time asc	

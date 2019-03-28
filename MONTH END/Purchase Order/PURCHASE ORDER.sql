@@ -55,11 +55,17 @@ FROM (SELECT
 		  SPO.created_on_date,
 		  SPO.number_of_items,
 		  SPOD.purchase_order_detail_id,
-		  MONTH(created_on_date) as monthid
+		  MONTH(created_on_date) as monthid,
+		  n.note_date,
+		  n.warning_flag,
+		  n.details,
+		  spo.internal_comment,
+		  spo.external_comment
 	FROM swe_purchase_order SPO INNER JOIN swe_purchase_order_detail SPOD ON SPO.purchase_order_id = SPOD.purchase_order_id
 								LEFT JOIN swe_purchase_request_detail SPRD ON SPOD.purchase_order_detail_id = SPRD.purchase_order_detail_id
 								LEFT JOIN swe_vendor_item SVI ON SVI.vendor_item_id = SPOD.vendor_item_id
 								INNER JOIN vendor v	ON v.vendor_id = spo.vendor_id
+								left outer join note n on n.main_entity_id = spo.purchase_order_id
 	WHERE ((MONTH(created_on_date) BETWEEN @From AND @To) AND YEAR(created_on_date) = @Year)
 		 --((MONTH(created_on_date) BETWEEN 01 AND 12) AND YEAR(created_on_date) = @Year)
 		 AND SPO.swe_purchase_site_id = '31488C46-FDB0-11D9-A79B-001143B8816C') AS purchase_order_request
@@ -88,5 +94,10 @@ GROUP BY	vendor_code,
 			created_on_date,
 			number_of_items,
 			purchase_order_detail_id,
-			purchase_order_request.monthid
+			purchase_order_request.monthid,
+			note_date,
+			warning_flag,
+			details,
+			internal_comment,
+			external_comment
 ORDER BY purchase_order_request.created_on_date, vendor_name ASC

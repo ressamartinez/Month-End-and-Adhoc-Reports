@@ -5,22 +5,13 @@
 			tempb.invoice_date as [Invoice Date],
 			tempb.invoice_amount as [Invoice Amount], 
 			tempb.gross_amount as [Gross Amount], 
-			case when tempb.visit_type_rcd = 'V34' THEN	tempb.vat
-				 when tempb.visit_type_rcd = 'V35' then CAST(tempb.orig_gross_amount * .12 as NUMERIC(12,2))
-			end as [Vat], 
+		    0 as [Vat], 
 			tempb.coveredby_co_payor as [Covered by Co-Payor], 
 			tempb.deposit as [Deposit], 
-			case when tempb.policy_discount = 'SCD' or tempb.policy_discount = 'PWD' then 0 else tempb.vatable_sales end as [Vatable Sales], 
 			tempb.total_invoice as [Total Invoice], 
-			case when tempb.visit_type_rcd = 'V34' then 0
-				 when tempb.visit_type_rcd = 'V35' then tempb.orig_gross_amount
-			end as [Vat-Exempt], 
-			case when tempb.visit_type_rcd = 'V34' then 0
-				 when tempb.visit_type_rcd = 'V35' THEN tempb.policy_discount_amt
-			end as [Discount Amount], 
-			case WHEN tempb.visit_type_rcd = 'V34' then tempb.orig_gross_amount
-				 when tempb.visit_type_rcd = 'V35' THEN tempb.orig_gross_amount - tempb.policy_discount_amt
-			end as [Net Amount],
+			tempb.gross_amount - CAST(tempb.orig_gross_amount * .12 as NUMERIC(12,2))  as [Vat-Exempt], 
+			tempb.vatable_sales as [Discount Amount],
+			 tempb.gross_amount - CAST(tempb.orig_gross_amount * .12 as NUMERIC(12,2))  as [Net Amount],
 			tempb.policy_name as [Policy Name]
 					
 	from 
@@ -107,7 +98,7 @@
 									 inner JOIN visit_type_ref_nl_view vtr on ar.visit_type_rcd = vtr.visit_type_rcd
 		where MONTH(ar.invoice_date) = @Month
 			and YEAR(ar.invoice_date) = @Year
-			and ar.visit_type_rcd in ('v34','v35')
+			and ar.visit_type_rcd = 'V37'
 			and ar.transaction_status_rcd not in ('voi','unk')
 	) as temp 
 	group by temp.hn, 

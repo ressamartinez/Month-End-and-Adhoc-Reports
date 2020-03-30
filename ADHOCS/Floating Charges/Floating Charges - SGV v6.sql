@@ -58,9 +58,10 @@ where cd.serviced_date_time is NULL
    and cd.deleted_date_time is NULL
  --   and MONTH(cd.charged_date_time) = 1
 	--and YEAR(cd.charged_date_time) = 2018
-	and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'02/26/2019',101) as SMALLDATETIME)
---and YEAR(cd.charged_date_time) = 2019
---and MONTH(cd.charged_date_time) = 1
+	--and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'02/26/2019',101) as SMALLDATETIME)
+	and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/29/2019',101) as SMALLDATETIME)
+	and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'06/17/2019',101) as SMALLDATETIME)
+
 ) as temp
 where temp.invoice_no in  (SELECT top 1 _ar.transaction_text
 			from ar_invoice_nl_view _ar inner JOIN ar_invoice_detail _ard on _ar.ar_invoice_id = _ard.ar_invoice_id
@@ -68,6 +69,7 @@ where temp.invoice_no in  (SELECT top 1 _ar.transaction_text
 				and _ar.transaction_status_rcd not in ('unk','voi')
 				and _ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2'
 			order by _ar.transaction_date_time)
+      --and hn = '00252836'
 	  
 order by temp.invoice_no
 

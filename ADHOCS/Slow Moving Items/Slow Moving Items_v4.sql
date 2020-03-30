@@ -1,26 +1,38 @@
 DECLARE @AsOFDate datetime
 
-SET @AsOFDate =  '08/28/2019 23:59:59.998'
+SET @AsOFDate =  '02/29/2020 23:59:59.998'
 
-SELECT *
-	   ,CASE WHEN aging >= 0 and aging <= 30 then '1 to 30 days'
+SELECT tempb.item_group_name,
+       tempb.item_code,
+	   tempb.item_name,
+	   tempb.last_purchased_date,
+	   tempb.qty_on_hand,
+	   tempb.average_unit_cost,
+	   tempb.cost,
+	   tempb.store,
+	   tempb.costcentre,
+	   tempb.aging,
+	   CASE WHEN aging >= 0 and aging <= 30 then '1 to 30 days'
 			 WHEN aging >= 31 and aging <= 60 then '31 to 60 days'
 			 WHEN aging >= 61 and aging <= 120 then '61 to 120 days'
 			 WHEN aging > 120 then '>120 days'
-	         end as classification
+	         end as classification,
+	   tempb.last_movement_date,
+	   tempb.last_movement_type,
+	   tempb.last_delivery_date
 
 from (
 
 	select distinct *
 					,cost = temp.qty_on_hand * temp.average_unit_cost     --final qty_on_hand_cost
-					,aging = DATEDIFF(day, temp.last_order_date_time, @AsOFDate) 
+					,aging = DATEDIFF(day, temp.last_purchased_date, @AsOFDate) 
     from (
 
 			select ig.name_l as item_group_name,
 				   i.item_id,
 				   i.item_code,
 				   i.name_l as item_name,
-				   si.last_order_date_time,
+				   si.last_order_date_time as last_purchased_date,
 				   qty_on_hand = (Select top 1 qty_on_hand
 							from inventory_summary_day _spo 
 							where _spo.item_id = isd.item_id
@@ -76,7 +88,7 @@ from (
 
 		) as temp
 		where temp.qty_on_hand > 0
-			  and temp.last_order_date_time is not NULL
+			  and temp.last_purchased_date is not NULL
 
 ) as tempb
 order by aging desc

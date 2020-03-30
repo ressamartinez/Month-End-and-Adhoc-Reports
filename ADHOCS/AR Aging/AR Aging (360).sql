@@ -5,15 +5,15 @@ DECLARE @dFrom datetime
 DECLARE @dTo datetime
 DECLARE @AsOFDate2 datetime
 
-SET @dFrom = /*@From*/ '01/01/2006 00:00:00.000'		--Jan 2018 = 22667
-SET @dTo = /*@To*/ '02/28/2019 23:59:59.998'
-set @AsOFDate2 = /*@AsOf*/ '02/28/2019  23:59:59.998'	--12746
+SET @dFrom = /*@From*/ '01/01/2006 00:00:00.000'		
+SET @dTo = /*@To*/ '02/29/2020 23:59:59.998'
+set @AsOFDate2 = /*@AsOf*/ '02/29/2020  23:59:59.998'	--17168, 16718
 
 
 
 SELECT *,
        CASE WHEN tempc.[Overdue in Days] <= 0 then 'Current'
-	        WHEN tempc.[Overdue in Days] >= 1 and tempc.[Overdue in Days] <= 30 then '1 to 30'
+	        WHEN tempc.[Overdue in Days] >= 1 and tempc.[Overdue in Days] <= 30 then '1 to 30' 
 			WHEN tempc.[Overdue in Days] >= 31 and tempc.[Overdue in Days] <= 60 then '31 to 60'
 			WHEN tempc.[Overdue in Days] >= 61 and tempc.[Overdue in Days] <= 90 then '61 to 90'
 			WHEN tempc.[Overdue in Days] >= 91 and tempc.[Overdue in Days] <= 120 then '91 to 120'
@@ -35,12 +35,12 @@ SELECT distinct case when otr.organisation_type_rcd is NULL or otr.organisation_
 		   --tempb.[Patient Name],
 		   tempb.[Payor],
 		  -- tempb.[Visit Type],
-		  tempb.[Transaction Date and Time] as 'Invoice Date',
-		  atb.due_date as 'Due Date',
+		   tempb.[Transaction Date and Time] as 'Invoice Date',
+		   atb.due_date as 'Due Date',
 		   --tempb.[Discharge Date and Time],
 		   --tempb.[Gross Amount],
 		   tempb.[Owing Amount] as 'Installment Amount',
-		   [Overdue in Days] = DATEDIFF(day, atb.due_date,'02/28/2019')
+		   [Overdue in Days] = DATEDIFF(day, atb.due_date,@AsOFDate2)
 		   
 from
 (
@@ -74,7 +74,7 @@ from
 		SELECT DISTINCT inv.invoice_no,
 			   inv.hn,
 			   inv.patient_name,
-			   inv.policy_name as payor,
+			   inv.policy_name as payor, 
 			   inv.visit_type,
 			   ar_main.transaction_date_time,
 			   inv.discharge_date_time,
@@ -226,8 +226,8 @@ from
 		   temp.net_er_pf as [Net ER PF],
 		   temp.discount_er_pf as [Discount ER PF],
 		   temp.package_discount as [Package Discount],
-		       temp.net_readersfee,
-			temp.discount_readersfee,
+		   temp.net_readersfee,
+		   temp.discount_readersfee,
 		   'Partial' as [Payment Status],
 		   temp.ar_net_amt as [Owing Amount],
 		   temp.customer_id,
@@ -323,7 +323,7 @@ from
 		   temp.net_er_pf  as [Net ER PF],
 		   temp.discount_er_pf as [Discount ER PF],
 		   temp.package_discount as [Package Discount],
-		       temp.net_readersfee,
+		   temp.net_readersfee,
 			temp.discount_readersfee,
 		   'No Payment' as [Payment Status],
 		   temp.owing_amt as [Owing Amount],
@@ -454,7 +454,8 @@ where tempb.[Invoice No.] not in ('PINV-2006-003407',
 
 
 ) as tempc
-where tempc.[Organisation Type] in ('Philhealth','International Insurance')
+--where tempc.[Organisation Type] in ('Philhealth','International Insurance')
+where tempc.[Organisation Type] in ('Self Pay','HMO', 'Corporate Account')
 order by tempc.[Invoice Date],
 		 tempc.[Invoice No.]
 		 --tempb.[Patient Name]

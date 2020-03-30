@@ -4,11 +4,11 @@ set @company_code = 'AHI'
 
 select 		gt.transaction_text as [Transaction Number],
 			gt.transaction_date_time as [Transaction DateTime],
-			CONVERT(VARCHAR(20), gt.transaction_date_time,101) AS [Transaction Date],
-			FORMAT(gt.transaction_date_time,'hh:mm tt') AS [Transaction Time],
+			--CONVERT(VARCHAR(20), gt.transaction_date_time,101) AS [Transaction Date],
+			--FORMAT(gt.transaction_date_time,'hh:mm tt') AS [Transaction Time],
 			gt.effective_date as [Effective DateTime],
-			CONVERT(VARCHAR(20), gt.effective_date,101) AS [Effective Date],
-			FORMAT(gt.effective_date,'hh:mm tt') AS [Effective Time],
+			--CONVERT(VARCHAR(20), gt.effective_date,101) AS [Effective Date],
+			--FORMAT(gt.effective_date,'hh:mm tt') AS [Effective Time],
 			ISNULL(gt.gl_manual_journal_no,'-') as [Journal Number],
 			REPLACE(REPLACE(gt.transaction_description,'''','*'),'"','*') as [Journal Description],
 			REPLACE(REPLACE(ISNULL(gt.transaction_comment,'-'),'''','*'),'"','*') as Comment,
@@ -34,8 +34,8 @@ inner join	costcentre_nl_view cc on cc.costcentre_id = gtd.costcentre_id
 left join	user_account_nl_view ua on ua.user_id = gt.created_by_user_id
 left  join	person_formatted_name_iview_nl_view pfn on pfn.person_id = ua.person_id
 left join	gl_posting_type_ref_nl_view gpt on gpt.gl_posting_type_rid = gt.gl_posting_type_rid
-where   MONTH(gt.effective_date) >= @iFromMonth and MONTH(gt.effective_date) <= @iToMonth
-	and	Year(gt.effective_date) = @Year
+where   MONTH(gt.effective_date) >= 6 and MONTH(gt.effective_date) <= 6
+	and	Year(gt.effective_date) = 2019
 	and	gt.company_code = @company_code
 	and	gt.transaction_status_rcd = 'POS'
 order by	gt.effective_date 

@@ -1,12 +1,14 @@
-SELECT tempb.period_date as [Period Date],	
+SELECT 
+       tempb.ar_invoice_detail_id,
+       tempb.period_date as [Period Date],	
 	   tempb.employee_nr as [Employee NR],
 	   tempb.Caregiver as [Caregiver Name],
-       --tempb.[Tax Rate],
-	   --tempb.[Net Amount],
-	   --tempb.[Adjustment Amount],
-	   --tempb.[Split Amount],
-	   --tempb.[Tax Amount],
-	   --tempb.[Merchant Discount],
+       tempb.[Tax Rate],
+	   tempb.[Gross Amount],
+	   tempb.[Adjustment Amount],
+	   tempb.[Split Net Amount],
+	   tempb.[Tax Amount],
+	   tempb.[Merchant Discount],
 	   --tempb.[Write-off Amount],
 	   tempb.[Credited Amount],
 	   tempb.[Invoice No],
@@ -15,18 +17,21 @@ SELECT tempb.period_date as [Period Date],
 	   tempb.[Item Code],
 	   tempb.[Item Description],
 	   tempb.HN,
-	   tempb.patient_name as [Patient Name]
+	   tempb.[Patient Name],
+	   tempb.[Validated Datetime],
+	   tempb.[GL Account Code],
+	   tempb.[GL Account Name]
 from
 (
-SELECT 
+SELECT DISTINCT
 	  -- sum(temp.credited_amount)
 	   temp.period_date,
 	   temp.employee_nr,
 	   RTRIM(temp.last_name_l) + ', ' + RTRIM(temp.first_name_l) as Caregiver,
 	   temp.w_tax as [Tax Rate],
-	   temp.net_amount as [Net Amount],
+	   temp.gross_amount as [Gross Amount],
 	   temp.adjustment_amount as [Adjustment Amount],
-	   temp.split_amount as [Split Amount],
+	   temp.split_net_amount as [Split Net Amount],
 	   temp.tax_amount as [Tax Amount],
 	   temp.mer_disc as [Merchant Discount],
 	   temp.writeoff_amt as [Write-off Amount],
@@ -38,7 +43,11 @@ SELECT
 	   temp.item_desc as [Item Description],
 	   temp.period_id,
 	   temp.HN,
-	   temp.patient_name
+	   temp.patient_name as [Patient Name],
+	   temp.validated_datetime as [Validated Datetime],
+	   temp.gl_acct_code as [GL Account Code],
+	   temp.gl_acct_name as [GL Account Name]
+	   ,temp.ar_invoice_detail_id
 from
 (
 SELECT
@@ -53,8 +62,8 @@ SELECT
 	,PPDH.tax_rate as w_tax
 	,bank = (SELECT DISTINCT CASE WHEN account_id IS NOT NULL THEN (SELECT bank_name FROM bank WHERE bank_id = (SELECT bank_id FROM doctor_account WHERE account_id = (SELECT DISTINCT account_id from payment_period_detail_history WHERE employee_nr = PPDH.employee_nr AND period_id = PPDH.period_id))) ELSE 'N/A' END from payment_period_detail_history WHERE employee_nr = PPDH.employee_nr AND period_id = PPDH.period_id)
 	,PPDH.bank_account_no
-	,PPDH.split_gross_amount AS net_amount
-	,PPDH.split_net_amount AS split_amount
+	,PPDH.split_gross_amount AS gross_amount
+	,PPDH.split_net_amount AS split_net_amount
 	,PPDH.split_tax_amount AS tax_amount
 	,PPDH.split_merchant_discount AS mer_disc
 	,PPDH.adjustment_amount
@@ -69,30 +78,36 @@ SELECT
 	,PPDH.pname as patient_name
 	,i.item_code
 	,ppdh.charge_date
+	,validated_datetime = (Select top 1 validated_datetime from df_browse_validated where charge_id = PPDH.charge_id order by validated_datetime desc)
+	,dba.gl_acct_code
+	,dba.gl_acct_name
+
 FROM
 	dbo.payment_period_detail_history PPDH INNER JOIN	dbo.doctor D ON D.employee_nr = PPDH.employee_nr
 										   LEFT outer JOIN ar_invoice_detail_head_history ardh on ppdh.ar_invoice_detail_id = ardh.ar_invoice_detail_id
 										   LEFT outer JOIN ar_invoice_head arh on ardh.ar_invoice_id = arh.ar_invoice_id
 										   inner JOIN payment_period pp on ppdh.period_id = pp.period_id
 										   left outer join dbprod03.amalgaprod.dbo.item i on i.item_id = ardh.item_id
+										   left outer join df_browse_all2 dba on PPDH.charge_id = dba.charge_id
+										   --left outer join df_browse_validated dbv on PPDH.charge_id = dbv.charge_id
 
 --where PPDH.period_id >= 553 and PPDH.period_id <= 553
 --where PPDH.period_id >= @periodFrom and PPDH.period_id <= @periodTo
-where CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2019',101) as SMALLDATETIME) 
-   and CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME)  <= CAST(CONVERT(VARCHAR(10),'11/30/2019',101) as SMALLDATETIME) 
+where CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'10/01/2019',101) as SMALLDATETIME) 
+   and CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME)  <= CAST(CONVERT(VARCHAR(10),'12/31/2019',101) as SMALLDATETIME) 
    and PPDH.policy_group <> 'Manual Entry'
 ) as temp
 where temp.bank = 'BPI'
 UNION ALL
-SELECT 
+SELECT DISTINCT
 	  -- sum(temp.credited_amount)
 	   temp.period_date,
 	   temp.employee_nr,
 	   RTRIM(temp.last_name_l) + ', ' + RTRIM(temp.first_name_l) as Caregiver,
 	   temp.w_tax as [Tax Rate],
-	   temp.net_amount as [Net Amount],
+	   temp.gross_amount as [Gross Amount],
 	   temp.adjustment_amount as [Adjustment Amount],
-	   temp.split_amount as [Split Amount],
+	   temp.split_net_amount as [Split Net Amount],
 	   temp.tax_amount as [Tax Amount],
 	   temp.mer_disc as [Merchant Discount],
 	   temp.writeoff_amt as [Write-off Amount],
@@ -104,11 +119,15 @@ SELECT
 	   temp.item_desc as [Item Description],
 	   temp.period_id,
 	   temp.HN,
-	   temp.patient_name
+	   temp.patient_name as [Patient Name],
+	   temp.validated_datetime as [Validated Datetime],
+	   temp.gl_acct_code as [GL Account Code],
+	   temp.gl_acct_name as [GL Account Name]
+	   ,temp.ar_invoice_detail_id
 from
 (
-SELECT
-    PPDH.ar_invoice_detail_id,
+SELECT 
+    DISTINCT PPDH.ar_invoice_detail_id,
 	PPDH.period_id
 	,department = (SELECT department_l from doctor WHERE employee_nr = PPDH.employee_nr)
 	,PPDH.employee_nr
@@ -119,8 +138,8 @@ SELECT
 	,PPDH.tax_rate as w_tax
 	,bank = (SELECT DISTINCT CASE WHEN account_id IS NOT NULL THEN (SELECT bank_name FROM bank WHERE bank_id = (SELECT bank_id FROM doctor_account WHERE account_id = (SELECT DISTINCT account_id from payment_period_detail_history WHERE employee_nr = PPDH.employee_nr AND period_id = PPDH.period_id))) ELSE 'N/A' END from payment_period_detail_history WHERE employee_nr = PPDH.employee_nr AND period_id = PPDH.period_id)
 	,PPDH.bank_account_no
-	,PPDH.split_gross_amount AS net_amount
-	,PPDH.split_net_amount AS split_amount
+	,PPDH.split_gross_amount AS gross_amount
+	,PPDH.split_net_amount AS split_net_amount
 	,PPDH.split_tax_amount AS tax_amount
 	,PPDH.split_merchant_discount AS mer_disc
 	,PPDH.adjustment_amount
@@ -135,22 +154,29 @@ SELECT
 	,PPDH.pname as patient_name
 	,i.item_code
 	,ppdh.charge_date
+	,validated_datetime = (Select top 1 validated_datetime from df_browse_validated where charge_id = PPDH.charge_id order by validated_datetime desc)
+	,dba.gl_acct_code
+	,dba.gl_acct_name
+
 FROM
 	dbo.payment_period_detail_history PPDH INNER JOIN	dbo.doctor D ON D.employee_nr = PPDH.employee_nr
 										   LEFT outer JOIN ar_invoice_detail_head_history ardh on ppdh.ar_invoice_detail_id = ardh.ar_invoice_detail_id
 										   LEFT outer JOIN ar_invoice_head arh on ardh.ar_invoice_id = arh.ar_invoice_id
 										   inner JOIN payment_period pp on ppdh.period_id = pp.period_id
 										   left outer join dbprod03.amalgaprod.dbo.item i on i.item_id = ardh.item_id
+										   left outer join df_browse_all2 dba on PPDH.charge_id = dba.charge_id
+										   --left outer join df_browse_validated dbv on PPDH.charge_id = dbv.charge_id
 
 --where PPDH.period_id >= 553 and PPDH.period_id <= 553
 --where PPDH.period_id >= @periodFrom and PPDH.period_id <= @periodTo
-where CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2019',101) as SMALLDATETIME) 
-   and CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME)  <= CAST(CONVERT(VARCHAR(10),'11/30/2019',101) as SMALLDATETIME) 
+where CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'10/01/2019',101) as SMALLDATETIME) 
+   and CAST(CONVERT(VARCHAR(10),pp.period_date,101) as SMALLDATETIME)  <= CAST(CONVERT(VARCHAR(10),'12/31/2019',101) as SMALLDATETIME) 
 --where pp.period_id = 502
    and PPDH.policy_group = 'Manual Entry'
 ) as temp
 where temp.bank = 'BPI'
    ) as tempb
+--where HN = '00533632'
 order by tempb.period_id,[Employee NR]
 
 /*

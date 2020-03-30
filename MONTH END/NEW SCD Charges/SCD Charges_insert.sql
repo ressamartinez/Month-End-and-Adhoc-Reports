@@ -34,5 +34,5 @@ select distinct(item_desc),
           vendor_code,
           main_item_group_code                     
 FROM dbo.rpt_vw_scd_charges2 as scd_charges2
-where     month_rcd = 6
+where     month_rcd = 9
          and year_rcd = 2019

@@ -76,9 +76,10 @@ FROM
 				   ,phu.visible_patient_id as hn
 				   ,pfn.display_name_l collate sql_latin1_general_cp1_cs_as as patient_name
 				   ,DATEDIFF(dd,pfn.date_of_birth,GETDATE()) / 365 as age
-				   ,(Select top 1 document_number from person_official_document 
+				   ,(Select top 1 isnull(document_number,'') from person_official_document 
 									where person_id = pv.patient_id
-									and document_number is not null ) collate sql_latin1_general_cp1_cs_as as osca_id
+									and official_document_type_rcd = 'SCID'
+									and deleted_date_time is null) collate sql_latin1_general_cp1_cs_as as osca_id
 				   ,pharmacy = (CASE WHEN i.item_code like '%OPP%' then 'Outpatient Pharmacy'
 										   else 'Inpatient Pharmacy' end) collate sql_latin1_general_cp1_cs_as
 				   ,cd.charge_detail_id
@@ -148,9 +149,10 @@ FROM
 				   ,phu.visible_patient_id as hn
 				   ,pfn.display_name_l collate sql_latin1_general_cp1_cs_as as patient_name
 				   ,DATEDIFF(dd,pfn.date_of_birth,GETDATE()) / 365 as age
-				   ,(Select top 1 document_number from person_official_document 
+				   ,(Select top 1 isnull(document_number,'') from person_official_document 
 									where person_id = pv.patient_id
-									and document_number is not null ) collate sql_latin1_general_cp1_cs_as as osca_id
+									and official_document_type_rcd = 'SCID'
+									and deleted_date_time is null) collate sql_latin1_general_cp1_cs_as as osca_id
 				   ,pharmacy = (CASE WHEN i.item_code like '%OPP%' then 'Outpatient Pharmacy'
 										   else 'Inpatient Pharmacy' end) collate sql_latin1_general_cp1_cs_as
 				   ,cd.charge_detail_id
@@ -219,9 +221,10 @@ FROM
 				   ,phu.visible_patient_id as hn
 				   ,pfn.display_name_l collate sql_latin1_general_cp1_cs_as as patient_name
 				   ,DATEDIFF(dd,pfn.date_of_birth,GETDATE()) / 365 as age
-				   ,(Select top 1 document_number from person_official_document 
+				   ,(Select top 1 isnull(document_number,'') from person_official_document 
 									where person_id = pv.patient_id
-									and document_number is not null ) collate sql_latin1_general_cp1_cs_as as osca_id
+									and official_document_type_rcd = 'SCID'
+									and deleted_date_time is null) collate sql_latin1_general_cp1_cs_as as osca_id
 				   ,pharmacy = (CASE WHEN i.item_code like '%OPP%' then 'Outpatient Pharmacy'
 										   else 'Inpatient Pharmacy' end) collate sql_latin1_general_cp1_cs_as
 				   ,cd.charge_detail_id

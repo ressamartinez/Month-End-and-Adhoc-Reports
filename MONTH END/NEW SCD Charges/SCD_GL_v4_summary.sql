@@ -1,8 +1,28 @@
 
-select *
+select tempb.visit_code
+       ,tempb.vendor_code
+	   ,tempb.vendor_name
+	   ,tempb.principal
+	   ,tempb.main_group_code
+	   ,tempb.main_group_name
+	   ,tempb.item_group_code
+	   ,tempb.item_group_name
+	   ,tempb.item_code
+	   ,tempb.item_name
+	   ,tempb.invoice_no
+	   ,tempb.invoice_date
+	   ,tempb.vat_in
+	   ,tempb.vat_ex
+	   ,tempb.quantity
+	   ,tempb.charge_amount
        ,tempb.charge_amount * .20 as discount_amount
 	   ,tempb.charge_amount * .20 * .30 as retailers_share
 	   ,tempb.charge_amount * .20 * .70 as manufacturers_share
+	   ,tempb.hn
+	   ,tempb.patient_name
+	   ,tempb.osca_id
+	   ,tempb.remarks
+
 from (
 
 select *
@@ -65,9 +85,8 @@ from (
 		)as temp
 
 )as tempb
-where month(tempb.invoice_date) = 6
-and year(tempb.invoice_date) = 2019
---and hn = '00241493'
---and hn = '00040185'
---and tempb.item_code = '23001534'
+where year(tempb.invoice_date) = 2019
+--and hn = '00590222'
+--and tempb.invoice_no = 'PINV-2019-231614'
+--and tempb.item_code = '13000414'
 order by tempb.hn, tempb.invoice_no, tempb.item_code

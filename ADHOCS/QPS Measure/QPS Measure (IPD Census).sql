@@ -410,8 +410,8 @@ from
 		AND iriv.active_flag = 1
 			
 ) as temp
-where CAST(CONVERT(VARCHAR(10),temp.actual_visit_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'04/01/2018',101) as SMALLDATETIME)
-and CAST(CONVERT(VARCHAR(10),temp.actual_visit_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'06/30/2018',101) as SMALLDATETIME)
+where CAST(CONVERT(VARCHAR(10),temp.actual_visit_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2018',101) as SMALLDATETIME)
+and CAST(CONVERT(VARCHAR(10),temp.actual_visit_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'12/31/2018',101) as SMALLDATETIME)
     --  year(temp.start_date_time) = 2014
 	and temp.address_type in ('H1','N/A')
 

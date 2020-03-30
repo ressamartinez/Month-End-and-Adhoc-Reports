@@ -157,8 +157,8 @@ from
 	WHERE vtr.visit_type_group_rcd = 'OPD'
 			and pv.cancelled_date_time is NULL
 		and panv.effective_until_date is NULL
-		AND CAST(CONVERT(VARCHAR(10),pv.actual_visit_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'04/01/2018',101) as SMALLDATETIME)
-		and CAST(CONVERT(VARCHAR(10),pv.actual_visit_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'06/30/2018',101) as SMALLDATETIME)
+		AND CAST(CONVERT(VARCHAR(10),pv.actual_visit_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2018',101) as SMALLDATETIME)
+		and CAST(CONVERT(VARCHAR(10),pv.actual_visit_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'12/31/2018',101) as SMALLDATETIME)
 ) as temp
 where temp.address_type in ('H1','N/A')
 order by temp.visit_start

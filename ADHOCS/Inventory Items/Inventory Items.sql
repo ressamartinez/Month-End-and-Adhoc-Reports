@@ -48,7 +48,7 @@ FROM
 		  and svi.active_flag = 1
 		  AND sviu.active_flag = 1
 		  --AND svi.vendor_item_id = '170BCD0F-856F-11DE-AFBF-000E0C7F3ED2'
-		and v.vendor_id IN (@vendor_id)
+		--and v.vendor_id IN (@vendor_id)
 		--and ig.item_group_code IN (@item_group_code)
 
 	

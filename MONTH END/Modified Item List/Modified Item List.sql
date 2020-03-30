@@ -1,4 +1,14 @@
+--DPROD03 AMALGAPROD
 
+DECLARE @date datetime
+DECLARE @dRefDate datetime
+DECLARE @dRefDate2 datetime
+
+
+set @date = GETDATE()
+--set @RefDate = CONVERT(VARCHAR(10),@date -1,101)
+set @dRefDate = @RefDateFrom
+set @dRefDate2 = @RefDateTo
 
 SELECT temp.item_code,
 	   temp.itemtype,
@@ -6,8 +16,6 @@ SELECT temp.item_code,
 	   temp.sub_item_type,
 	   temp.item_desc,
 	   temp.modified_on,
-	CONVERT(VARCHAR(20), temp.modified_on,101) as change_date,
-	   FORMAT(temp.modified_on,'hh:mm tt') as change_time,
 	   temp.modified_by,
 	   temp.column_name,
 	   temp.old_value,
@@ -49,8 +57,8 @@ from
 											 inner JOIN item_group_nl_view ig on gvi.item_group_id = ig.item_group_id
 											 inner JOIN data_change_type_ref dctr on dcl.data_change_type_rcd = dctr.data_change_type_rcd
 	WHERE DCL.table_name = 'item'
-	   and MONTH(DCS.modified_date_time) = @Month
-		and YEAR(DCS.modified_date_time) = @Year
+		and CAST(CONVERT(VARCHAR(10),DCS.modified_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@RefDateFrom,101) as SMALLDATETIME)
+		and CAST(CONVERT(VARCHAR(10),DCS.modified_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@RefDateTo,101) as SMALLDATETIME)
 		and GVI.item_type_rcd in ('INV','PCK','SRV')
 		AND DCL.data_change_type_rcd <> 'I'
 		and ig.parent_item_group_id not in ('9B78157F-360A-11DA-BB34-000E0C7F3ED2',
@@ -95,8 +103,8 @@ from
 											 inner JOIN item_group_nl_view ig on gvi.item_group_id = ig.item_group_id
 											 inner JOIN data_change_type_ref dctr on dcl.data_change_type_rcd = dctr.data_change_type_rcd
 	WHERE DCL.table_name = 'item'
-	  and MONTH(DCS.modified_date_time) = @Month
-		and YEAR(DCS.modified_date_time) = @Year
+		and CAST(CONVERT(VARCHAR(10),DCS.modified_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@RefDateFrom,101) as SMALLDATETIME)
+		and  CAST(CONVERT(VARCHAR(10),DCS.modified_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@RefDateTo,101) as SMALLDATETIME)
 		and GVI.item_type_rcd in ('INV','PCK','SRV')
 		AND DCL.data_change_type_rcd = 'I'
 		and ig.parent_item_group_id not in ('9B78157F-360A-11DA-BB34-000E0C7F3ED2',
@@ -108,6 +116,6 @@ from
 								'item_type_rcd',
 								'sub_item_type_rcd')
 ) as temp
-order by temp.modified_on DESC,
-		 temp.item_code,
-		temp.item_type_rcd
+order by temp.item_type_rcd,
+	     temp.modified_on DESC,
+		 temp.item_code

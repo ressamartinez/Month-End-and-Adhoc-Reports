@@ -60,15 +60,18 @@ FROM (SELECT
 		  n.warning_flag,
 		  n.details,
 		  spo.internal_comment,
-		  spo.external_comment
+		  spo.external_comment,
+		  sps.name_l as purchase_site
 	FROM swe_purchase_order SPO INNER JOIN swe_purchase_order_detail SPOD ON SPO.purchase_order_id = SPOD.purchase_order_id
 								LEFT JOIN swe_purchase_request_detail SPRD ON SPOD.purchase_order_detail_id = SPRD.purchase_order_detail_id
 								LEFT JOIN swe_vendor_item SVI ON SVI.vendor_item_id = SPOD.vendor_item_id
 								INNER JOIN vendor v	ON v.vendor_id = spo.vendor_id
 								left outer join note n on n.main_entity_id = spo.purchase_order_id
+								inner join swe_purchase_site sps on spo.swe_purchase_site_id = sps.swe_purchase_site_id
 	WHERE ((MONTH(created_on_date) BETWEEN @From AND @To) AND YEAR(created_on_date) = @Year)
 		 --((MONTH(created_on_date) BETWEEN 01 AND 12) AND YEAR(created_on_date) = @Year)
-		 AND SPO.swe_purchase_site_id = '31488C46-FDB0-11D9-A79B-001143B8816C') AS purchase_order_request
+		 AND SPO.swe_purchase_site_id in ('31488C46-FDB0-11D9-A79B-001143B8816C', '2198E881-0E1D-11DA-A79E-001143B8816C') --CP, PP
+		 ) AS purchase_order_request
 GROUP BY	vendor_code,
 			vendor_name,
 			transaction_text,
@@ -99,5 +102,6 @@ GROUP BY	vendor_code,
 			warning_flag,
 			details,
 			internal_comment,
-			external_comment
+			external_comment,
+			purchase_order_request.purchase_site
 ORDER BY purchase_order_request.created_on_date, vendor_name ASC

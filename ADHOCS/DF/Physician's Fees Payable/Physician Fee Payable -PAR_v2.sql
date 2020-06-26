@@ -18,7 +18,8 @@ SELECT temp.PAR,
 	   case when temp.[Caregiver Name] is null then temp.PPMD_caregiver else temp.[Caregiver Name] end as [Caregiver Name],
 	   temp.[Service Requestor],
 	   temp.[GL Account Code],
-	   temp.[Gl Account Name]
+	   temp.[Gl Account Name],
+	   temp.[Discount Type]
        
 from (
 
@@ -42,7 +43,8 @@ from (
 	   (SELECT ISNULL(d_lname,'') + ', ' + ISNULL(d_fname,'') as caregiver from ahmcdfdb.payprocessmd.dbo.charge_details where charge_id = cd.charge_detail_id) collate sql_latin1_general_cp1_cs_as as PPMD_caregiver,
 	   (select name_l from costcentre where costcentre_id = cd.service_requester_costcentre_id) as [Service Requestor],
 	   gac.gl_acct_code_code as [GL Account Code],
-	   gac.name_l as [Gl Account Name]
+	   gac.name_l as [Gl Account Name],
+	   dpr.name_l as [Discount Type]
 	   
 	from gl_transaction glt inner JOIN ar_invoice_nl_view ar on glt.gl_transaction_id = ar.gl_transaction_id
 							inner JOIN ar_invoice_detail ard on ar.ar_invoice_id = ard.ar_invoice_id
@@ -59,15 +61,16 @@ from (
 	where  
 	--MONTH(ar.transaction_date_time) = 11
 	--	 and YEAR(ar.transaction_date_time) = 2017
-		CAST(CONVERT(VARCHAR(10),ar.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'02/01/2020',101) as SMALLDATETIME)
-		and CAST(CONVERT(VARCHAR(10),ar.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'02/29/2020',101) as SMALLDATETIME)
+		CAST(CONVERT(VARCHAR(10),ar.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'05/01/2020',101) as SMALLDATETIME)
+		and CAST(CONVERT(VARCHAR(10),ar.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'05/31/2020',101) as SMALLDATETIME)
 		and ar.transaction_status_rcd not in ('unk','voi')
+		and glt.company_code = 'AHI'
 		AND gac.gl_acct_code_code IN ('2152100', '2152250', '4264000')	
 		and cd.deleted_date_time is null
 		--and glt.user_transaction_type_id = '30957FA9-735D-11DA-BB34-000E0C7F3ED2'   --PAR
-		and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2'    --PINV
-		--and ar.user_transaction_type_id in ('30957F9E-735D-11DA-BB34-000E0C7F3ED2', '30957F9F-735D-11DA-BB34-000E0C7F3ED2',   --CMAR, DMAR
-		--                                    '30957FA1-735D-11DA-BB34-000E0C7F3ED2')   --CINV       
+		--and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2'    --PINV
+		and ar.user_transaction_type_id in ('30957F9E-735D-11DA-BB34-000E0C7F3ED2', '30957F9F-735D-11DA-BB34-000E0C7F3ED2',   --CMAR, DMAR
+		                                    '30957FA1-735D-11DA-BB34-000E0C7F3ED2')   --CINV       
 		                            
 )as temp
 order by temp.PAR

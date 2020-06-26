@@ -85,8 +85,9 @@ from (
 		)as temp
 
 )as tempb
-where year(tempb.invoice_date) = 2019
---and hn = '00590222'
+where year(tempb.invoice_date) = 2020
+and month(tempb.invoice_date) = 5
+--and hn = '00006719'
 --and tempb.invoice_no = 'PINV-2019-231614'
 --and tempb.item_code = '13000414'
 order by tempb.hn, tempb.invoice_no, tempb.item_code

@@ -23,9 +23,19 @@ SELECT tempb.item_group_name,
 
 from (
 
-	select distinct *
-					,cost = temp.qty_on_hand * temp.average_unit_cost     --final qty_on_hand_cost
-					,aging = DATEDIFF(day, temp.last_purchased_date, @AsOFDate) 
+	select distinct temp.item_group_name,
+		            temp.item_code,
+					temp.item_name,
+					temp.last_purchased_date,
+					temp.qty_on_hand,
+					temp.average_unit_cost,
+					cost = temp.qty_on_hand * temp.average_unit_cost,     --final qty_on_hand_cost
+					temp.store,
+					temp.costcentre,
+					aging = DATEDIFF(day, temp.last_purchased_date, @AsOFDate),
+					temp.last_movement_date,
+					_imt.name_l as last_movement_type,
+					temp.last_delivery_date 
     from (
 
 			select ig.name_l as item_group_name,
@@ -55,13 +65,13 @@ from (
 				   --s.store_id,
 				   c.name_l as costcentre,
 				   last_movement_date = (select top 1 _im.date_time 
-							from item_movement _im left join item_movement_type_ref _imt on _im.item_movement_type_rcd = _imt.item_movement_type_rcd
+							from item_movement _im
 							where _im.item_id = si.item_id
 							and _im.store_id = si.store_id
 							and cast(convert(varchar(10),_im.date_time,101)as smalldatetime) <= cast(convert(varchar(10),@AsOFDate,101)as smalldatetime)
 							order by _im.date_time desc), 
-				   last_movement_type = (select top 1 _imt.name_l as movement 
-							from item_movement _im left join item_movement_type_ref _imt on _im.item_movement_type_rcd = _imt.item_movement_type_rcd
+				   last_movement_type_rcd = (select top 1 _im.item_movement_type_rcd as movement 
+							from item_movement _im
 							where _im.item_id = si.item_id 
 							and _im.store_id = si.store_id
 							and cast(convert(varchar(10),_im.date_time,101)as smalldatetime) <= cast(convert(varchar(10),@AsOFDate,101)as smalldatetime)
@@ -80,14 +90,15 @@ from (
 
 			where i.active_flag = 1
 				  and cast(convert(varchar(10),si.last_order_date_time,101)as smalldatetime) <= cast(convert(varchar(10),@AsOFDate,101)as smalldatetime)
-				  --and s.store_id = '08CD273C-19CE-11DA-A79E-001143B8816C'            --Central Warehouse
-				  and s.store_id = '08CD273F-19CE-11DA-A79E-001143B8816C'          --POS
-				  and ig.item_group_id = 'F4678B58-5C74-4B6E-A527-83C5BF98032C'    --OR Supplies - Exclusive
-				  --and i.item_code = '213078371'
+				  and s.store_id = '08CD273C-19CE-11DA-A79E-001143B8816C'            --Central Warehouse
+				  --and s.store_id = '08CD273F-19CE-11DA-A79E-001143B8816C'          --POS
+				  --and ig.item_group_id = 'F4678B58-5C74-4B6E-A527-83C5BF98032C'    --OR Supplies - Exclusive
 
 		) as temp
+		left join item_movement_type_ref _imt on temp.last_movement_type_rcd = _imt.item_movement_type_rcd
 		where temp.qty_on_hand > 0
 			  and temp.last_purchased_date is not NULL
-
+			  and temp.last_movement_type_rcd in ('IS', 'ID')   --Issue to store, Issue to department
+			  --and temp.item_code = '211038001'
 ) as tempb
 order by aging desc

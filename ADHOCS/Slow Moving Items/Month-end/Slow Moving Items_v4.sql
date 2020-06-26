@@ -1,6 +1,6 @@
 DECLARE @AsOFDate datetime
 
-SET @AsOFDate =  '05/31/2020 23:59:59.998'
+SET @AsOFDate =  '04/29/2020 23:59:59.998'
 
 SELECT tempb.item_group_name,
        tempb.item_code,
@@ -13,10 +13,10 @@ SELECT tempb.item_group_name,
 	   tempb.costcentre,
 	   tempb.aging,
 	   CASE WHEN aging >= 0 and aging <= 30 then '1 to 30 days'
-			WHEN aging >= 31 and aging <= 60 then '31 to 60 days'
-			WHEN aging >= 61 and aging <= 120 then '61 to 120 days'
-			WHEN aging > 120 then '>120 days'
-	        end as classification,
+			 WHEN aging >= 31 and aging <= 60 then '31 to 60 days'
+			 WHEN aging >= 61 and aging <= 120 then '61 to 120 days'
+			 WHEN aging > 120 then '>120 days'
+	         end as classification,
 	   tempb.last_movement_date,
 	   tempb.last_movement_type,
 	   tempb.last_delivery_date

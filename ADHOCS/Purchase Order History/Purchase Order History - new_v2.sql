@@ -1,14 +1,17 @@
---47706 (JAN - DEC 2018)
 
-SELECT
-			purchase_order_request.vendor_item_code as [Item Code]
-			--,purchase_order_request.costcentre as [Costcentre]
+
+SELECT       
+            purchase_order_request.gl_account_code
+            ,purchase_order_request.gl_account
+			,purchase_order_request.vendor_item_code as [Item Code]
 			,purchase_order_request.vendor_item_name_l as [Item Description]
 			,purchase_order_request.vendor_name as [Vendor Name]
+			,purchase_order_request.costcentre as [Costcentre]
 			,purchase_order_request.item_group as [Item Group/Material Group]
 			,purchase_order_request.item_type as [Item Type/Material Type]
 			,purchase_order_request.uom_rcd as [Base Unit of Measure]
 			,purchase_order_request.uom2 as [Order Unit of Measure]
+			,purchase_order_request.pr_no as [Purchase Requisition (PR No.)]
 			,purchase_order_request.po_no as [Purchase Order (PO No.)]
 			,purchase_order_request.po_date as [PO Date]
 			,purchase_order_request.received_no as [Received No. (GR No.)]
@@ -21,11 +24,12 @@ SELECT
 			,purchase_order_request.unit_price * 1.12 as [VAT Inc]
 			,purchase_order_request.unit_price * purchase_order_request.ordered_qty as [Total Amount (VAT Ex)]
             ,(purchase_order_request.unit_price * 1.12) * purchase_order_request.ordered_qty as [Total Amount (VAT Inc)]
+			,purchase_order_request.ipd as [Selling Price per Piece - In Patient (Vat Ex)]
 			,purchase_order_request.ipd * 1.12 as [Selling Price per Piece - In Patient (Vat Inc)]
+            ,purchase_order_request.opd as [Selling Price per Piece - Out Patient (Vat Ex)]
             ,purchase_order_request.opd * 1.12 as [Selling Price per Piece - Out Patient (Vat Inc)]
 			--,purchase_order_request.pending_qty as [Pending Qty]
 			--,purchase_order_request.net_amount as [Net Amount]
-			--,purchase_order_request.pr_no as [Purchase Requisition (PR No.)]
 			--,purchase_order_request.pr_date as [PR Date]
 			--,purchase_order_request.item_group_code as [Item Group Code]
 
@@ -43,10 +47,10 @@ SELECT
 													WHERE costcentre_id = SPRD.costcentre_id),
 					    gl_account_code = (SELECT gl_acct_code_code 
 																FROM gl_acct_code
-																WHERE gl_acct_code_id = SPRD.gl_acct_code_id),
+																WHERE gl_acct_code_id = SPD.gl_acct_code_debit_id),
 					   gl_account = (SELECT name_l 
 												FROM gl_acct_code 
-												WHERE gl_acct_code_id = SPRD.gl_acct_code_id),
+												WHERE gl_acct_code_id = SPD.gl_acct_code_debit_id),
 					  SVI.vendor_item_code,
 					  SVI.vendor_item_name_l,
 					  SPOD.uom_rcd,
@@ -92,7 +96,9 @@ SELECT
 					  ,opd = (Select price from item_price where item_id = i.item_id 
 					                                             and charge_type_rcd = 'OPD'
 																 and effective_to_date_time is null)
-
+					  ,SPD.purchase_receive_detail_id
+					  ,SPD.ap_invoice_detail_id
+					  ,SPRD.purchase_request_detail_id
 
 	FROM swe_purchase_order SPO 
 								INNER JOIN swe_purchase_order_detail SPOD ON SPO.purchase_order_id = SPOD.purchase_order_id
@@ -103,16 +109,17 @@ SELECT
 								LEFT OUTER JOIN swe_purchase_receive_detail SPD on SPOD.purchase_order_detail_id = SPD.purchase_order_detail_id
 								LEFT OUTER JOIN swe_purchase_receive SPR on SPD.purchase_receive_id = SPR.purchase_receive_id
 								LEFT OUTER JOIN swe_purchase_request SPQ on SPRD.purchase_request_id = SPQ.purchase_request_id
-
 								LEFT OUTER JOIN item i ON SVI.item_id = i.item_id
 								LEFT OUTER JOIN item_group ig ON i.item_group_id = ig.item_group_id
 								LEFT OUTER JOIN item_type_ref itr ON ig.item_type_rcd = itr.item_type_rcd
 
-	WHERE ((MONTH(created_on_date) BETWEEN 1 AND 12) AND YEAR(created_on_date) = 2019)		
+	WHERE ((MONTH(created_on_date) BETWEEN 1 AND 5) AND YEAR(created_on_date) = 2020)		
 	--AND SPO.swe_purchase_site_id = '2198E881-0E1D-11DA-A79E-001143B8816C' )AS purchase_order_request --For Pharmacy Purchasing
 	--AND SPO.swe_purchase_site_id = '31488C46-FDB0-11D9-A79B-001143B8816C'  --For Central Purchasing
-	--and i.item_code = 'CP-0650048'
+	--and i.item_code = 'OPP-0700001'
 	)AS purchase_order_request 
+
+where purchase_order_request.gl_account_code = '1160200'
 
 GROUP BY	vendor_code,
 			vendor_name,
@@ -149,12 +156,16 @@ GROUP BY	vendor_code,
 			purchase_order_request.pr_date,
 			purchase_order_request.monthid
 			,purchase_order_request.item_group_id
-			  ,purchase_order_request.item_group 
-			  ,purchase_order_request.item_group_code
-			  ,purchase_order_request.item_type_rcd
-			  ,purchase_order_request.item_type
-			  ,purchase_order_request.uom2
-			  ,purchase_order_request.ipd
-			  ,purchase_order_request.opd
+			,purchase_order_request.item_group 
+			,purchase_order_request.item_group_code
+			,purchase_order_request.item_type_rcd
+			,purchase_order_request.item_type
+			,purchase_order_request.uom2
+			,purchase_order_request.ipd
+			,purchase_order_request.opd
+			,purchase_order_request.purchase_receive_detail_id
+			,purchase_order_request.purchase_request_detail_id
+			,purchase_order_request.ap_invoice_detail_id
 
-ORDER BY purchase_order_request.po_date, vendor_name ASC
+
+ORDER BY [Item Code], [PO Date]

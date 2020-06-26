@@ -1,22 +1,24 @@
 --HISReport
 
-----INVOICES UNPAID AND PARTIALLY PAID --24122, 24084, 24086
+--INVOICES UNPAID AND PARTIALLY PAID --24122, 24084, 24086
 DECLARE @dFrom datetime
 DECLARE @dTo datetime
 DECLARE @AsOFDate2 datetime
 
 SET @dFrom = /*@From*/ '01/01/2006 00:00:00.000'		--Jan 2018 = 22667
-SET @dTo = /*@To*/ '11/30/2018 23:59:59.998'
-set @AsOFDate2 = /*@AsOf*/ '11/30/2018  23:59:59.998'	--27874
+SET @dTo = /*@To*/ '05/31/2020 23:59:59.998'
+set @AsOFDate2 = /*@AsOf*/ '05/31/2020  23:59:59.998'	--33915
 
 
-SELECT distinct tempb.[Invoice No.],
-	       tempb.[HN],
-	       tempb.[Patient Name],
+SELECT distinct case when otr.organisation_type_rcd is NULL or otr.organisation_type_rcd = 'oth' then 'Self Pay' else otr.name_l end as 'Organisation Type', 
+		   tempb.[HN],
+		   tempb.[Patient Name],
+		   tempb.[Invoice No.],
 	       tempb.[Payor],
 		   tempb.[Visit Type],
 		   tempb.[Transaction Date and Time],
 		   tempb.[Discharge Date and Time],
+		   tempb.[Effective Date],
 		   tempb.[Gross Amount],
 		   tempb.[Philhealth],
 		   tempb.[Philhealth PF],
@@ -31,9 +33,10 @@ SELECT distinct tempb.[Invoice No.],
 		   tempb.[Package Discount],
 		   tempb.[Payment Status],
 		   tempb.[Owing Amount],
-		   [Overdue in Days] = DATEDIFF(day,tempb.[Transaction Date and Time],'11/30/2018'),
+		   [Overdue in Days] = DATEDIFF(day,tempb.[Transaction Date and Time],@AsOFDate2),
 		   tempb.[Due Date],
-		   [Due Date in Days] = DATEDIFF(day,tempb.[Due Date],'11/30/2018')
+		   [Due Date in Days] = DATEDIFF(day,tempb.[Due Date],@AsOFDate2)
+		   
 from
 (
 
@@ -60,7 +63,11 @@ from
 		   temp.discount_readersfee,
 		   'Partial' as [Payment Status],
 		   temp.ar_net_amt - temp.paid_amt as [Owing Amount],
-		   temp.due_date as [Due Date]
+		   temp.due_date as [Due Date],
+		   temp.customer_id,
+		   temp.invoice_id,
+		   temp.effective_date as [Effective Date]
+
 	from
 	(
 		SELECT DISTINCT inv.invoice_no,
@@ -86,6 +93,9 @@ from
 			   inv.discount_readersfee,
 			   inv.net_readersfee,
 			   atb.due_date,
+			   ar_main.customer_id,
+			   inv.invoice_id,
+			   atb.effective_date,
 		  
 				isnull((SELECT ISNULL(SUM(temp.net_amount),0)
 										from
@@ -177,7 +187,7 @@ from
 													and b2.ar_invoice_id = a.ar_invoice_id
 											) as temp
 										) as temp),0) as paid_amt
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
+		from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
 								inner JOIN AmalgaPROD.dbo.swe_ar_instalment ar_instl_main on ar_main.ar_invoice_id = ar_instl_main.ar_invoice_id
 								INNER  JOIN AmalgaPROD.dbo.remittance r_main on ar_instl_main.remittance_id = r_main.remittance_id
 								Left outer join AmalgaPROD.dbo.aged_trial_balance_ar_rollup atb on atb.invoice_id = ar_main.ar_invoice_id
@@ -185,7 +195,7 @@ from
 			and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)
 			and ar_main.transaction_status_rcd not in  ('unk','voi')
 			and inv.invoice_id not in (SELECT _inv.invoice_id
-										from rpt_invoice_pf _inv inner JOIN AmalgaPROD.dbo.ar_invoice _ar_main on _inv.invoice_id = _ar_main.ar_invoice_id
+										from HISReport.dbo.rpt_invoice_pf _inv inner JOIN AmalgaPROD.dbo.ar_invoice _ar_main on _inv.invoice_id = _ar_main.ar_invoice_id
 										where CAST(CONVERT(VARCHAR(10),_inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 											 and CAST(CONVERT(VARCHAR(10),_inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)	
 											 and _ar_main.net_amount > 0 
@@ -218,11 +228,15 @@ from
 		   temp.net_er_pf as [Net ER PF],
 		   temp.discount_er_pf as [Discount ER PF],
 		   temp.package_discount as [Package Discount],
-		       temp.net_readersfee,
-			temp.discount_readersfee,
+		   temp.net_readersfee,
+		   temp.discount_readersfee,
 		   'Partial' as [Payment Status],
 		   temp.ar_net_amt as [Owing Amount],
-		   temp.due_date as [Due Date]
+		   temp.due_date as [Due Date],
+		   temp.customer_id,
+		   temp.invoice_id,
+		   temp.effective_date as [Effective Date]
+
 	from
 	(
 		SELECT DISTINCT inv.invoice_no,
@@ -247,8 +261,12 @@ from
 			   inv.package_discount,
 			   inv.discount_readersfee,
 			   inv.net_readersfee,
-			   atb.due_date
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
+			   ar_main.customer_id,
+			   inv.invoice_id,
+			   atb.due_date,
+			   atb.effective_date
+
+		from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice_nl_view ar_main on RTRIM(inv.invoice_no) = rtrim(ar_main.transaction_text)
 								Left outer join AmalgaPROD.dbo.aged_trial_balance_ar_rollup atb on atb.invoice_id = ar_main.ar_invoice_id
 		where    CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 			and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)
@@ -281,8 +299,12 @@ from
 			   inv.discount_readersfee,
 			'No Payment' as [Payment Status],
 			inv.ar_net_amt as [Owing Amount],
-			atb.due_date as [Due Date]
-	from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
+			atb.due_date as [Due Date],
+			ar_main.customer_id,
+			inv.invoice_id,
+			atb.effective_date
+
+	from HISReport.dbo.rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
 							Left outer join AmalgaPROD.dbo.aged_trial_balance_ar_rollup atb on atb.invoice_id = ar_main.ar_invoice_id
 	where CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@dFrom,101) as SMALLDATETIME)
 		 and CAST(CONVERT(VARCHAR(10),inv.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@dTo,101) as SMALLDATETIME)	
@@ -318,7 +340,10 @@ from
 			temp.discount_readersfee,
 		   'No Payment' as [Payment Status],
 		   temp.owing_amt as [Owing Amount],
-		   temp.due_date as [Due Date]
+		   temp.due_date as [Due Date],
+		   temp.customer_id,
+		   temp.invoice_id,
+		   temp.effective_date as [Effective Date]
 	from
 	(
 		SELECT DISTINCT inv.invoice_no,
@@ -344,9 +369,13 @@ from
 			   inv.discount_readersfee,
 			   inv.net_readersfee,
 			   inv.ar_net_amt as owing_amt,
-			   atb.due_date
+			   atb.due_date,
+			   ar_main.customer_id,
+			   inv.invoice_id,
+			   atb.effective_date
 
-		from rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
+		from HISReport.dbo.
+		rpt_invoice_pf inv inner JOIN AmalgaPROD.dbo.ar_invoice ar_main on inv.invoice_id = ar_main.ar_invoice_id
 								inner JOIN (SELECT ar_invoice_id,
 																transaction_text as ar_invoice,
 																related_ar_invoice_id,
@@ -390,6 +419,12 @@ from
 			
 	) as temp
 ) as tempb
+left OUTER JOIN AmalgaPROD.dbo.customer c on tempb.customer_id = c.customer_id
+										  LEFT OUTER JOIN AmalgaPROD.dbo.organisation o on c.organisation_id = o.organisation_id
+										  LEFT OUTER JOIN AmalgaPROD.dbo.person_formatted_name_iview_nl_view pfn on c.person_id = pfn.person_id
+										  LEFT OUTER JOIN AmalgaPROD.dbo.organisation_role oor on o.organisation_id = oor.organisation_id
+										  LEFT OUTER JOIN AmalgaPROD.dbo.organisation_type_ref otr on oor.organisation_type_rcd = otr.organisation_type_rcd
+										  LEFT OUTER JOIN AmalgaPROD.dbo.aged_trial_balance_ar_rollup_nl_view atb on atb.invoice_id = tempb.invoice_id
 
 where tempb.[Invoice No.] not in ('PINV-2006-003407',
 								'PINV-2006-160470',
@@ -420,7 +455,6 @@ where tempb.[Invoice No.] not in ('PINV-2006-003407',
 
 
 
-
 	--where tempb.[Invoice No.] =  --'PINV-2017-057248'			--'CMAR-2017-012677'	--not included in Sept extraction
 	--IN ('PINV-2017-172544'
 	--									,'PINV-2017-172532'
@@ -434,7 +468,6 @@ where tempb.[Invoice No.] not in ('PINV-2006-003407',
 	--									,'DMAR-2017-001742'
 	--									,'PINV-2017-078019'
 	--									)											--July 2017 extraction 
-
 
 order by tempb.[Transaction Date and Time],
 		 tempb.[Invoice No.],

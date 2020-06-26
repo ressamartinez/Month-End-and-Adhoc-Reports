@@ -230,8 +230,8 @@ set gross_df = temp.gross_df,
 												left OUTER JOIN  AmalgaPROD.dbo.patient_hospital_usage_nl_view phu on pfn.person_id = phu.patient_id
 												LEFT OUTER JOIN AmalgaPROD.dbo.swe_payment_status_ref sps on _main.swe_payment_status_rcd = sps.swe_payment_status_rcd
 			where	 
-				 CAST(CONVERT(VARCHAR(10),_main.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2018',101) as SMALLDATETIME)
-				  and CAST(CONVERT(VARCHAR(10),_main.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'12/31/2018',101) as SMALLDATETIME)
+				 CAST(CONVERT(VARCHAR(10),_main.transaction_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'01/01/2020',101) as SMALLDATETIME)
+				  and CAST(CONVERT(VARCHAR(10),_main.transaction_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'12/31/2020',101) as SMALLDATETIME)
 				 and  ar_main.transaction_status_rcd not in  ('unk','voi')
 			     and _main.deleted is NULL		
 				 --and invoice_no = 'PINV-2015-220801'										

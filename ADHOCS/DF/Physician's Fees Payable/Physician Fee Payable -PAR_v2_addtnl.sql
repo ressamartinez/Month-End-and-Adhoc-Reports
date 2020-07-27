@@ -28,7 +28,6 @@ from (
 		  --and gt.transaction_text = 'PAR-2019-001120'
 		  and gt.company_code = 'AHI'
 		  and gac.gl_acct_code_code IN ('2152100', '2152250', '4264000')
-		  --and gac2.gl_acct_code_code IN ('2152100', '2152250', '4264000')
 
 ) as temp
 where temp.[Debit Amount] <> 0 

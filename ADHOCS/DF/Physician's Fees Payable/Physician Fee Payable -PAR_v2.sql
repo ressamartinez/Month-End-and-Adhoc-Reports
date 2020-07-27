@@ -68,8 +68,8 @@ from (
 		AND gac.gl_acct_code_code IN ('2152100', '2152250', '4264000')	
 		and cd.deleted_date_time is null
 		--and glt.user_transaction_type_id = '30957FA9-735D-11DA-BB34-000E0C7F3ED2'   --PAR
-		--and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2'    --PINV
-		and ar.user_transaction_type_id in ('30957F9E-735D-11DA-BB34-000E0C7F3ED2', '30957F9F-735D-11DA-BB34-000E0C7F3ED2',   --CMAR, DMAR
+		and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2'    --PINV
+		--and ar.user_transaction_type_id in ('30957F9E-735D-11DA-BB34-000E0C7F3ED2', '30957F9F-735D-11DA-BB34-000E0C7F3ED2',   --CMAR, DMAR
 		                                    '30957FA1-735D-11DA-BB34-000E0C7F3ED2')   --CINV       
 		                            
 )as temp

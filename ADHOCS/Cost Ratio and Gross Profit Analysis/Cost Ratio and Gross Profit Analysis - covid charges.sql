@@ -1,9 +1,9 @@
 
-DECLARE @From DATETIME
-DECLARE @To DATETIME
+--DECLARE @From DATETIME
+--DECLARE @To DATETIME
 
-SET @From = '05/01/2020 00:00:00.000'
-SET @To = '05/31/2020 23:59:59.998'
+--SET @From = '05/01/2020 00:00:00.000'
+--SET @To = '05/31/2020 23:59:59.998'
 
 select DISTINCT temp.[Visit Code],
 		temp.[Admission Date],
@@ -14,8 +14,8 @@ select DISTINCT temp.[Visit Code],
 		temp.[Payor Type],
 		temp.[Bed Code],
 		temp.Age,
-		temp.[Visit Type],
-		temp.Status
+		temp.[Visit Type]
+		--temp.Status
 
 from (
 
@@ -32,8 +32,8 @@ from (
 			cp.[Patient Name],
 			[Bed Code] = (Select admission_bed_code from api_patient_visit_view
 			              where patient_visit_id = pv.patient_visit_id),
-		    cp.Age,
-		    cp.Status
+		    cp.Age
+		    --cp.Status
 
 	from charge_detail cd  inner join patient_visit_nl_view pv on cd.patient_visit_id = pv.patient_visit_id
 							--inner join person_formatted_name_iview_nl_view pfn on pv.patient_id = pfn.person_id
@@ -41,16 +41,15 @@ from (
 							inner join AHMC_DataAnalyticsDB.dbo.temp_covid_patients cp on cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
 							left join visit_type_ref vtr on pv.visit_type_rcd = vtr.visit_type_rcd
 
-	where CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
+	where /*CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
 		    and CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
-	        and cd.deleted_date_time is null
-			--and i.item_type_rcd = 'INV'
-			--and dpr.discount_posting_rule_code in ('DPD', 'SCD')
+	        and*/ cd.deleted_date_time is null
 			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
 			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
 			--and phu.visible_patient_id = '00016500'
 
 )as temp
+where temp.[Discharge Date] is null
 group by temp.[Visit Code],
          temp.[Admission Date],
 		 temp.[Discharge Date],
@@ -59,12 +58,8 @@ group by temp.[Visit Code],
 		 temp.[Payor Type],
 		 temp.[Bed Code],
 		 temp.Age,
-		 temp.[Visit Type],
-		 temp.Status
+		 temp.[Visit Type]
+		 --temp.Status
 
 order by temp.[Patient Name]
-
-
-
-
 

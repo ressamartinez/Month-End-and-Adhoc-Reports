@@ -197,8 +197,8 @@ where temp.[Address Type] in ('H1','N/A')
 where 
       --year(tempb.[Visit Start]) = 2018
       --and month(tempb.[Visit Start]) = 11
-	   CAST(CONVERT(VARCHAR(10),tempb.[Visit Start],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'05/01/2020',101) as SMALLDATETIME)
-	  and CAST(CONVERT(VARCHAR(10),tempb.[Visit Start],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'05/31/2020',101) as SMALLDATETIME)
+	   CAST(CONVERT(VARCHAR(10),tempb.[Visit Start],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),'07/01/2020',101) as SMALLDATETIME)
+	  and CAST(CONVERT(VARCHAR(10),tempb.[Visit Start],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),'07/31/2020',101) as SMALLDATETIME)
 	  --and tempb.HN in ('00609412')
 	  and tempb.[Room Code] not like '%-%'
 	  --and tempb.Age >=60

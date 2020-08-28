@@ -1,9 +1,9 @@
 
-DECLARE @From DATETIME
-DECLARE @To DATETIME
+--DECLARE @From DATETIME
+--DECLARE @To DATETIME
 
-SET @From = '05/01/2020 00:00:00.000'
-SET @To = '05/31/2020 23:59:59.998'
+--SET @From = '05/01/2020 00:00:00.000'
+--SET @To = '05/31/2020 23:59:59.998'
 
 select DISTINCT temp.[Visit Code],
 		temp.[Admission Date],
@@ -19,8 +19,8 @@ select DISTINCT temp.[Visit Code],
 		temp.[Payor Type],
 		temp.[Bed Code],
 		temp.Age,
-		temp.[Visit Type],
-		temp.Status
+		temp.[Visit Type]
+		--temp.Status
 
 from (
 
@@ -41,16 +41,17 @@ from (
 			pv.visit_code as [Visit Code],
 			case when otr.organisation_type_rcd is NULL or otr.organisation_type_rcd = 'oth' then 'Self Pay' else otr.name_l end as 'Payor Type',
 			cp.[Patient Name],
-			cp.[Bed Code],
-		    cp.Age,
-		    cp.Status
+			[Bed Code] = (Select admission_bed_code from api_patient_visit_view
+			              where patient_visit_id = pv.patient_visit_id),
+		    cp.Age
+		    --cp.Status
 
 	from ar_invoice ar inner join ar_invoice_detail ard on ar.ar_invoice_id = ard.ar_invoice_id
 						inner join charge_detail cd on ard.charge_detail_id = cd.charge_detail_id
 						inner join patient_visit_nl_view pv on cd.patient_visit_id = pv.patient_visit_id
 						--inner join person_formatted_name_iview_nl_view pfn on pv.patient_id = pfn.person_id
 						inner join patient_hospital_usage_nl_view phu on pv.patient_id = phu.patient_id
-						inner join AHMC_DataAnalyticsDB.dbo.covid_patients cp on cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
+						inner join AHMC_DataAnalyticsDB.dbo.temp_covid_patients cp on cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
 						--left outer JOIN discount_posting_rule dpr on ard.discount_posting_rule_id = dpr.discount_posting_rule_id
 						left join policy p on ar.policy_id = p.policy_id
 						left join visit_type_ref vtr on pv.visit_type_rcd = vtr.visit_type_rcd
@@ -60,11 +61,9 @@ from (
 						LEFT OUTER JOIN organisation_role oor on o.organisation_id = oor.organisation_id
 						LEFT OUTER JOIN organisation_type_ref otr on oor.organisation_type_rcd = otr.organisation_type_rcd
 
-	where CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
+	where /*CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
 		    and CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
-	        and ar.transaction_status_rcd not in ('voi', 'unk')  
-			--and i.item_type_rcd = 'INV'
-			--and dpr.discount_posting_rule_code in ('DPD', 'SCD')
+	        and*/ ar.transaction_status_rcd not in ('voi', 'unk')  
 			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
 			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
 			and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2' --PINV    
@@ -73,8 +72,3 @@ from (
 )as temp
 
 order by temp.[Patient Name]
-
-
-
-
-

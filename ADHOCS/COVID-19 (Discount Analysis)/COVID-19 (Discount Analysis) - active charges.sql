@@ -1,11 +1,12 @@
 
---DECLARE @From DATETIME
---DECLARE @To DATETIME
+DECLARE @From DATETIME
+DECLARE @To DATETIME
 
---SET @From = '05/01/2020 00:00:00.000'
---SET @To = '05/31/2020 23:59:59.998'
+SET @From = '07/01/2020 00:00:00.000'
+SET @To = '07/31/2020 23:59:59.998'
 
 select DISTINCT temp.ar_invoice_detail_id,
+                temp.[Charged Date],
                 temp.[Item Code],
 				temp.[Item Name],
 				temp.[Costcentre Code],
@@ -29,7 +30,6 @@ select DISTINCT temp.ar_invoice_detail_id,
 				temp.[Discharge Date],
 				temp.HN,
 				temp.[Patient Name]
-			    --temp.Status
 
 from (
 
@@ -63,8 +63,8 @@ from (
 			cast(convert(varchar(10),pv.closure_date_time,101)as DATETIME) as [Discharge Date],
 			ard.ar_invoice_detail_id,
 			pv.visit_code as [Visit Code],
-			cp.[Patient Name]
-			--cp.Status
+			cp.[Patient Name],
+			cd.charged_date_time as [Charged Date]
 
 	from ar_invoice ar inner join ar_invoice_detail ard on ar.ar_invoice_id = ard.ar_invoice_id
 						inner join charge_detail cd on ard.charge_detail_id = cd.charge_detail_id
@@ -81,9 +81,9 @@ from (
 						left outer JOIN discount_posting_rule dpr on ard.discount_posting_rule_id = dpr.discount_posting_rule_id
 						left join visit_type_ref vtr on pv.visit_type_rcd = vtr.visit_type_rcd
 
-	where /*CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
-		    and CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
-			and*/ ar.transaction_status_rcd not in ('voi', 'unk')  
+	where CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
+		    and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
+			and ar.transaction_status_rcd not in ('voi', 'unk')  
 	        and gac.company_code = 'AHI'
 			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
 			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as

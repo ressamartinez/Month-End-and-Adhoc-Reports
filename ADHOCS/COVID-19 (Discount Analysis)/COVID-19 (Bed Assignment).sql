@@ -1,12 +1,12 @@
 
-DECLARE @From DATETIME
-DECLARE @To DATETIME
+--DECLARE @From DATETIME
+--DECLARE @To DATETIME
 
-SET @From = '05/01/2020 00:00:00.000'
-SET @To = '05/31/2020 23:59:59.998'
+--SET @From = '05/01/2020 00:00:00.000'
+--SET @To = '05/31/2020 23:59:59.998'
 
 select DISTINCT 
-        temp.Status,
+        --temp.Status,
 		temp.[Visit Code],
 		temp.[Admission Date],
 		temp.[Discharge Date],
@@ -32,7 +32,7 @@ from (
 			be.start_date_time as [Start Date],
 			be.actual_end_date_time as [End Date],
 		    cp.Age,
-		    cp.Status,
+		    --cp.Status,
 			pv.patient_visit_id
 
 	from patient_visit_nl_view pv 
@@ -42,14 +42,10 @@ from (
 						left join AHMC_DataAnalyticsDB.dbo.temp_covid_patients cp on cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
 						left join visit_type_ref vtr on pv.visit_type_rcd = vtr.visit_type_rcd
 
-	where CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
+	where /*CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
 		    and CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
-	        --and ar.transaction_status_rcd not in ('voi', 'unk')  
-			--and i.item_type_rcd = 'INV'
-			--and dpr.discount_posting_rule_code in ('DPD', 'SCD')
-			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
-			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
-			--and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2' --PINV    
+			and*/ cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
+			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as  
 			--and phu.visible_patient_id = '00559678'
 
 )as temp

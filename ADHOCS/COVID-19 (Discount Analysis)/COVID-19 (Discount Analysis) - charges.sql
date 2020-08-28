@@ -1,12 +1,11 @@
 
+--DECLARE @From DATETIME
+--DECLARE @To DATETIME
 
-DECLARE @From DATETIME
-DECLARE @To DATETIME
+--SET @From = '06/01/2020 00:00:00.000'
+--SET @To = '06/30/2020 23:59:59.998'
 
-SET @From = '05/01/2020 00:00:00.000'
-SET @To = '05/31/2020 23:59:59.998'
-
-select DISTINCT 
+select DISTINCT temp.[Charged Date],
                 temp.[Item Code],
 				temp.[Item Name],
 				temp.[Costcentre Code],
@@ -24,8 +23,7 @@ select DISTINCT
 				temp.[Admission Date],
 				temp.[Discharge Date],
 				temp.HN,
-				temp.[Patient Name],
-			    temp.Status
+				temp.[Patient Name]
 
 from (
 
@@ -53,7 +51,7 @@ from (
 			cast(convert(varchar(10),pv.closure_date_time,101)as DATETIME) as [Discharge Date],
 			pv.visit_code as [Visit Code],
 			cp.[Patient Name],
-			cp.Status
+			cd.charged_date_time as [Charged Date]
 
 	from charge_detail cd inner join item i on cd.item_id = i.item_id
 						  inner join costcentre c on cd.service_provider_costcentre_id = c.costcentre_id
@@ -65,19 +63,15 @@ from (
 						  left join uom_ref u on cd.uom_rcd = u.uom_rcd
 						  left join visit_type_ref vtr on pv.visit_type_rcd = vtr.visit_type_rcd
 
-	where CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
-		    and CAST(CONVERT(VARCHAR(10),cp.[Admission Date],101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
-			and cd.deleted_date_time is null
+	where /*CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) >= CAST(CONVERT(VARCHAR(10),@From,101) as SMALLDATETIME)
+		    and CAST(CONVERT(VARCHAR(10),cd.charged_date_time,101) as SMALLDATETIME) <= CAST(CONVERT(VARCHAR(10),@To,101) as SMALLDATETIME)
+			and*/ cd.deleted_date_time is null
 	        and gac.company_code = 'AHI'
-			--and i.item_type_rcd = 'INV'
 			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
 			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
-			--and dpr.discount_posting_rule_code in ('DPD', 'SCD')
-
 
 )as temp
-
+where temp.[Discharge Date] is null
 order by temp.[Admission Date],
          temp.[Patient Name],
-		 temp.Status,
 		 temp.[Item Code]

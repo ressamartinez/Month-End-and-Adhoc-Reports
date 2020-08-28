@@ -25,6 +25,7 @@ select DISTINCT temp.ar_invoice_detail_id,
 				temp.[Invoice No.],
 				temp.[Invoice Date],
 				--cp.[Admission Date],
+				temp.[Visit Code],
 				temp.[Admission Date],
 				temp.[Discharge Date],
 				temp.HN,
@@ -56,7 +57,7 @@ from (
 			ard.gross_amount - ard.discount_amount as [Net Amount],
 			vtr.name_l as [Visit Type],
 			phu.visible_patient_id as HN,
-			--pfn.display_name_l as patient_name,
+			--pfn.display_name_l as [Patient Name],
 			dpr.name_l as [Discount Policy],
 			ar.transaction_text as [Invoice No.],
 			ar.transaction_date_time as [Invoice Date],
@@ -75,7 +76,7 @@ from (
 						inner join patient_visit_nl_view pv on cd.patient_visit_id = pv.patient_visit_id
 						--inner join person_formatted_name_iview_nl_view pfn on pv.patient_id = pfn.person_id
 						inner join patient_hospital_usage_nl_view phu on pv.patient_id = phu.patient_id
-						inner join AHMC_DataAnalyticsDB.dbo.temp_covid_patients cp on phu.visible_patient_id = cp.HN collate sql_latin1_general_cp1_cs_as
+						inner join AHMC_DataAnalyticsDB.dbo.temp_covid_bo cp on phu.visible_patient_id = cp.HN collate sql_latin1_general_cp1_cs_as
 						left join uom_ref u on ard.uom_rcd = u.uom_rcd
 						left join line_type_ref l on ard.line_type_rcd = l.line_type_rcd
 						left outer JOIN discount_posting_rule dpr on ard.discount_posting_rule_id = dpr.discount_posting_rule_id
@@ -87,6 +88,8 @@ from (
 	        and gac.company_code = 'AHI'
 			and cp.[Visit Code] = pv.visit_code collate sql_latin1_general_cp1_cs_as
 			and cp.HN = phu.visible_patient_id collate sql_latin1_general_cp1_cs_as
+			--and pv.visit_code = '239535'
+			--and phu.visible_patient_id = '00615465'
 			and ar.user_transaction_type_id = 'F8EF2162-3311-11DA-BB34-000E0C7F3ED2' --PINV    
 
 )as temp
